@@ -13,6 +13,29 @@ This is an enhanced fork of [bakito/adguardhome-sync](https://github.com/bakito/
 - 🔄 **Upstream PR**: Discussion/PR pending with upstream maintainer
 - 🛠️ **Actively Maintained**: Regular updates and improvements
 
+## 📸 Screenshots
+
+### Real-time Progress Monitoring
+![Sync Progress Indicator](docs/images/dark-progress-detail.png)
+
+*Live countdown timers update every second, showing time since last sync and time until next scheduled sync*
+
+### System Architecture
+<div align="center">
+
+![Architecture Diagram](docs/images/architecture.svg)
+
+*Simple, efficient design adds monitoring without impacting sync performance*
+
+</div>
+
+### Complete Interface
+![Full Interface - Dark Mode](docs/images/progress-indicator-hero.png)
+
+*Production deployment showing real-time sync logs, progress indicator, and control buttons*
+
+---
+
 ## ✨ Additional Features
 
 ### 1. Real-time Sync Progress Monitoring

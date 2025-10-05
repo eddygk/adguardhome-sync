@@ -1,0 +1,58 @@
+<svg width="700" height="300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Styles -->
+  <defs>
+    <style>
+      .box { fill: #2d3748; stroke: #4a5568; stroke-width: 2; }
+      .text { fill: #e2e8f0; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; }
+      .label { fill: #a0aec0; font-family: Arial, sans-serif; font-size: 12px; }
+      .arrow { stroke: #48bb78; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .api-arrow { stroke: #4299e1; stroke-width: 2; fill: none; marker-end: url(#arrowhead-blue); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#48bb78" />
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4299e1" />
+    </marker>
+  </defs>
+
+  <!-- Origin Server -->
+  <rect x="50" y="50" width="140" height="80" rx="5" class="box"/>
+  <text x="120" y="85" text-anchor="middle" class="text">AdGuard Home</text>
+  <text x="120" y="105" text-anchor="middle" class="label">(Origin)</text>
+  <text x="120" y="120" text-anchor="middle" class="label">10.10.20.6:80</text>
+
+  <!-- Sync Tool -->
+  <rect x="280" y="50" width="140" height="80" rx="5" class="box"/>
+  <text x="350" y="80" text-anchor="middle" class="text">AdGuard Sync</text>
+  <text x="350" y="100" text-anchor="middle" class="label">+ Monitoring</text>
+  <text x="350" y="115" text-anchor="middle" class="label">10.10.20.8</text>
+
+  <!-- Replica Server -->
+  <rect x="510" y="50" width="140" height="80" rx="5" class="box"/>
+  <text x="580" y="85" text-anchor="middle" class="text">AdGuard Home</text>
+  <text x="580" y="105" text-anchor="middle" class="label">(Replica)</text>
+  <text x="580" y="120" text-anchor="middle" class="label">10.10.20.7:80</text>
+
+  <!-- Web UI / API -->
+  <rect x="280" y="190" width="140" height="80" rx="5" class="box"/>
+  <text x="350" y="220" text-anchor="middle" class="text">Web UI</text>
+  <text x="350" y="240" text-anchor="middle" class="label">API :8080</text>
+  <text x="350" y="255" text-anchor="middle" class="label">Real-time Status</text>
+
+  <!-- Arrows -->
+  <!-- Origin to Sync -->
+  <path d="M 190 90 L 280 90" class="arrow"/>
+  <text x="235" y="85" text-anchor="middle" class="label">Read</text>
+
+  <!-- Sync to Replica -->
+  <path d="M 420 90 L 510 90" class="arrow"/>
+  <text x="465" y="85" text-anchor="middle" class="label">Sync</text>
+
+  <!-- Sync to Web UI -->
+  <path d="M 350 130 L 350 190" class="api-arrow"/>
+  <text x="370" y="165" class="label">API</text>
+
+  <!-- Every 5 minutes label -->
+  <text x="350" y="30" text-anchor="middle" class="label" style="fill: #48bb78;">⏱️  Every 5 minutes</text>
+</svg>

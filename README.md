@@ -5,9 +5,17 @@
 
 ---
 
-> **⚡ Enhanced Fork**: This is a fork of [bakito/adguardhome-sync](https://github.com/bakito/adguardhome-sync) with additional real-time monitoring features for homelab HA DNS deployments. See [FORK.md](./FORK.md) for details.
->
-> **Upstream**: https://github.com/bakito/adguardhome-sync
+<div align="center">
+
+### ⚡ Enhanced Fork: Real-time Monitoring for AdGuardHome Sync
+
+![Sync Progress Indicator](docs/images/sync-progress-hero.png)
+
+**Live countdown timers** • **Progress visualization** • **Dark mode** • **RESTful API** • **Zero dependencies**
+
+[**📖 Full Documentation →**](./FORK.md) | [**🔗 Upstream Project**](https://github.com/bakito/adguardhome-sync)
+
+</div>
 
 ---
 
