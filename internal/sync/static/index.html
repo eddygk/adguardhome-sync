@@ -2,9 +2,113 @@
 <head>
     <title>AdGuard Home sync</title>
     <script type="text/javascript" src="lib/jquery.js"></script>
-    <link rel="stylesheet" href="lib/bootstrap.css">
+    <link rel="stylesheet" href="lib/bootstrap.css" id="theme-stylesheet">
     <script type="text/javascript">
         $(document).ready(function () {
+            // Sync schedule tracking
+            let syncScheduleData = null;
+            let progressUpdateInterval = null;
+
+            // Format duration helper function
+            function formatDuration(seconds) {
+                if (seconds < 0) return "0s";
+                if (seconds < 60) return seconds + "s";
+                if (seconds < 3600) return Math.floor(seconds / 60) + "m " + (seconds % 60) + "s";
+                return Math.floor(seconds / 3600) + "h " + Math.floor((seconds % 3600) / 60) + "m";
+            }
+
+            // Fetch sync schedule from API
+            function fetchSyncSchedule() {
+                $.get("api/v1/sync-schedule", function(data) {
+                    syncScheduleData = data;
+                    if (data.intervalSeconds > 0 || data.cronExpression) {
+                        $("#syncProgressRow").show();
+                        updateProgressDisplay();
+                    }
+                }).fail(function() {
+                    // If API fails, hide the progress indicator
+                    $("#syncProgressRow").hide();
+                });
+            }
+
+            // Update progress display
+            function updateProgressDisplay() {
+                if (!syncScheduleData) return;
+
+                const now = Date.now();
+                const lastSync = new Date(syncScheduleData.lastSyncTime).getTime();
+                const nextSync = new Date(syncScheduleData.nextSyncTime).getTime();
+
+                // Calculate times
+                const timeSinceSync = Math.floor((now - lastSync) / 1000);
+                const timeUntilSync = Math.max(0, Math.floor((nextSync - now) / 1000));
+                const totalInterval = syncScheduleData.intervalSeconds;
+
+                // Update text
+                if (lastSync && !isNaN(timeSinceSync) && timeSinceSync > 0) {
+                    $("#lastSyncTime").text(formatDuration(timeSinceSync));
+                } else {
+                    $("#lastSyncTime").text("never");
+                }
+
+                if (nextSync && !isNaN(timeUntilSync)) {
+                    $("#nextSyncTime").text(formatDuration(timeUntilSync));
+                } else {
+                    $("#nextSyncTime").text("--");
+                }
+
+                // Update progress bar
+                if (totalInterval > 0) {
+                    const progress = Math.min(100, (timeSinceSync / totalInterval) * 100);
+                    $("#progressBarFill").css("width", progress + "%");
+                }
+
+                // Update status
+                if (syncScheduleData.syncRunning) {
+                    $("#syncStatusText").text("Syncing...");
+                    $(".status-dot").addClass("syncing");
+                } else {
+                    $("#syncStatusText").text("Idle");
+                    $(".status-dot").removeClass("syncing");
+                }
+            }
+
+            // Theme toggle functionality
+            const themeStylesheet = document.getElementById('theme-stylesheet');
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+
+            function setTheme(isDark) {
+                if (isDark) {
+                    themeStylesheet.href = 'lib/bootstrap-dark.css';
+                    themeIcon.textContent = '☀️';
+                    localStorage.setItem('theme', 'dark');
+                    document.body.classList.remove('theme-light');
+                    document.body.classList.add('theme-dark');
+                } else {
+                    themeStylesheet.href = 'lib/bootstrap-light.css';
+                    themeIcon.textContent = '🌙';
+                    localStorage.setItem('theme', 'light');
+                    document.body.classList.remove('theme-dark');
+                    document.body.classList.add('theme-light');
+                }
+            }
+
+            // Load saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                setTheme(true);
+            } else {
+                // Default to light theme
+                setTheme(false);
+            }
+
+            // Toggle theme on button click
+            $("#theme-toggle").click(function () {
+                const isDark = themeStylesheet.href.includes('dark');
+                setTheme(!isDark);
+            });
+
             $("#showLogs").click(function () {
                 $.get("api/v1/logs", {}, function (data) {
                         $('#logs').html(data);
@@ -32,12 +136,42 @@
                 $.post("api/v1/sync", {}, function (data) {
                 });
                 $("#showLogs").click();
+                // Refresh schedule data after sync
+                setTimeout(fetchSyncSchedule, 2000);
             });
             $("#showLogs").click();
+
+            // Initialize sync progress tracking
+            fetchSyncSchedule();
+
+            // Update progress display every second
+            progressUpdateInterval = setInterval(function() {
+                updateProgressDisplay();
+            }, 1000);
+
+            // Refresh schedule data from server every 30 seconds
+            setInterval(fetchSyncSchedule, 30000);
         });
     </script>
     <link rel="shortcut icon" href="favicon.ico">
     <style>
+        /* Prevent layout shift when toggling themes */
+        html {
+            overflow-y: scroll;
+            scrollbar-gutter: stable;
+        }
+
+        /* Normalize header spacing - Bootstrap mb-3 differs between light/dark themes */
+        .d-flex.align-items-center.justify-content-between.mb-3 {
+            margin-bottom: 1rem !important;
+        }
+
+        /* Normalize h1 typography - Bootstrap themes apply different font-size/line-height */
+        h1 {
+            font-size: 2rem !important;
+            line-height: 1.2 !important;
+        }
+
         .stat-card {
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
@@ -73,17 +207,95 @@
         .btn-group {
             margin: 5px;
         }
+        .sync-progress-card {
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        /* Dark mode styles */
+        body.theme-dark .sync-progress-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        body.theme-dark .sync-timing {
+            color: #9ca3af;
+        }
+        body.theme-dark .progress-bar-container {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        /* Light mode styles */
+        body.theme-light .sync-progress-card {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        body.theme-light .sync-timing {
+            color: #6c757d;
+        }
+        body.theme-light .progress-bar-container {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+        .status-dot.syncing {
+            background: #3b82f6;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .sync-timing {
+            font-size: 12px;
+        }
+        .progress-bar-container {
+            height: 4px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #22c55e);
+            transition: width 1s linear;
+            width: 0%;
+        }
     </style>
 </head>
 <body>
 <div class="container-fluid px-4">
     <div class="row">
-        <div class="d-flex align-items-center mb-3">
-            <img src="logo.svg" alt="Logo" class="me-3" style="height: 4em;">
-            <div>
-                <h1 class="mb-0">AdGuard Home sync</h1>
-                <p class="h6 text-muted mb-0">{{ .Version }} ({{ .Build }})</p>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex align-items-center">
+                <img src="logo.svg" alt="Logo" class="me-3" style="height: 4em;">
+                <div>
+                    <h1 class="mb-0">AdGuard Home sync</h1>
+                    <p class="h6 text-muted mb-0">{{ .Version }} ({{ .Build }})</p>
+                </div>
             </div>
+            <button id="theme-toggle" class="btn btn-outline-secondary" title="Toggle dark mode">
+                <span id="theme-icon">🌙</span>
+            </button>
         </div>
     </div>
     {{- if .Metrics }}
@@ -148,6 +360,26 @@
                    type="button" id="replica_{{ $i }}"
                    {{ if $r.Error }} title="{{ $r.Error }}" {{ end }} >Replica {{ $r.Host }}</a>
                 {{ end }}
+            </div>
+        </div>
+    </div>
+    <div class="row sync-progress-row mt-3" id="syncProgressRow" style="display: none;">
+        <div class="col-12">
+            <div class="stat-card sync-progress-card">
+                <div class="progress-header">
+                    <div class="progress-info">
+                        <span class="sync-status">
+                            <span class="status-dot"></span>
+                            <span id="syncStatusText">Idle</span>
+                        </span>
+                        <span class="sync-timing">
+                            Last sync: <span id="lastSyncTime">--</span> ago | Next sync: in <span id="nextSyncTime">--</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progressBarFill"></div>
+                </div>
             </div>
         </div>
     </div>

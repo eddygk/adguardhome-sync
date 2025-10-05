@@ -74,6 +74,35 @@ func (w *worker) handleStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, w.status())
 }
 
+func (w *worker) handleSyncSchedule(c *gin.Context) {
+	schedule := w.getSyncSchedule()
+	c.JSON(http.StatusOK, schedule)
+}
+
+func (w *worker) getSyncSchedule() syncSchedule {
+	schedule := syncSchedule{
+		LastSyncTime: w.lastSyncTime,
+		NextSyncTime: w.nextSyncTime,
+		SyncRunning:  w.running,
+	}
+
+	if w.cfg.Cron != "" {
+		schedule.CronExpression = w.cfg.Cron
+		// Calculate the actual cron interval by getting two consecutive execution times
+		if w.cron != nil && w.cronEntryID != 0 {
+			entry := w.cron.Entry(w.cronEntryID)
+			if entry.ID != 0 && entry.Schedule != nil {
+				now := time.Now()
+				next := entry.Schedule.Next(now)
+				following := entry.Schedule.Next(next)
+				schedule.IntervalSeconds = int(following.Sub(next).Seconds())
+			}
+		}
+	}
+
+	return schedule
+}
+
 func (w *worker) handleHealthz(c *gin.Context) {
 	status := w.status()
 
@@ -118,6 +147,7 @@ func (w *worker) listenAndServe() {
 	group.GET("/api/v1/logs", w.handleLogs)
 	group.POST("/api/v1/clear-logs", w.handleClearLogs)
 	group.GET("/api/v1/status", w.handleStatus)
+	group.GET("/api/v1/sync-schedule", w.handleSyncSchedule)
 	static.HandleResources(group, w.cfg.API.DarkMode)
 	group.GET("/", w.handleRoot)
 	if w.cfg.API.Metrics.Enabled {
@@ -196,6 +226,14 @@ type replicaStatus struct {
 	Status            string `json:"status"`
 	Error             string `json:"error,omitempty"`
 	ProtectionEnabled *bool  `json:"protection_enabled"`
+}
+
+type syncSchedule struct {
+	LastSyncTime    time.Time `json:"lastSyncTime"`
+	NextSyncTime    time.Time `json:"nextSyncTime"`
+	SyncRunning     bool      `json:"syncRunning"`
+	CronExpression  string    `json:"cronExpression,omitempty"`
+	IntervalSeconds int       `json:"intervalSeconds"`
 }
 
 func getLast24Hours() []string {

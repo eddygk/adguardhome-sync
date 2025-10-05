@@ -55,14 +55,16 @@ func Sync(cfg *types.Config) error {
 			cl.With("error", err).Error("Error parsing cron expression")
 			return err
 		}
-		cl = cl.With("next-execution", sched.Next(time.Now()))
-		_, err = w.cron.AddFunc(cfg.Cron, func() {
+		w.nextSyncTime = sched.Next(time.Now())
+		cl = cl.With("next-execution", w.nextSyncTime)
+		entryID, err := w.cron.AddFunc(cfg.Cron, func() {
 			w.sync()
 		})
 		if err != nil {
 			cl.With("error", err).Error("Error during cron job setup")
 			return err
 		}
+		w.cronEntryID = entryID
 		cl.Info("Setup cronjob")
 		if cfg.API.Port != 0 {
 			w.cron.Start()
@@ -95,6 +97,9 @@ type worker struct {
 	cfg          *types.Config
 	running      bool
 	cron         *cron.Cron
+	cronEntryID  cron.EntryID
+	lastSyncTime time.Time
+	nextSyncTime time.Time
 	createClient func(instance types.AdGuardInstance) (client.Client, error)
 	actions      []syncAction
 }
@@ -157,6 +162,13 @@ func (w *worker) sync() {
 	w.running = true
 	defer func() {
 		w.running = false
+		w.lastSyncTime = time.Now()
+		if w.cron != nil && w.cronEntryID != 0 {
+			entry := w.cron.Entry(w.cronEntryID)
+			if entry.ID != 0 {
+				w.nextSyncTime = entry.Next
+			}
+		}
 	}()
 
 	oc, err := w.createClient(*w.cfg.Origin)

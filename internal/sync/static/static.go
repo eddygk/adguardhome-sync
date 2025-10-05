@@ -60,6 +60,9 @@ func HandleResources(group gin.IRouter, dark bool) {
 	group.GET("/lib/popper.js", handleJS(popper))
 	group.GET("/lib/chart.js", handleJS(chart))
 	group.GET("/lib/bootstrap.js", handleJS(bootstrapJS))
+	// Expose both themes for client-side switching
+	group.GET("/lib/bootstrap-light.css", handleCSS(bootstrapCSS))
+	group.GET("/lib/bootstrap-dark.css", handleCSS(bootstrapDarkCSS))
 	if dark {
 		group.GET("/lib/bootstrap.css", handleCSS(bootstrapDarkCSS))
 	} else {

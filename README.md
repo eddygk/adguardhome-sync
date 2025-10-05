@@ -122,6 +122,54 @@ sudo systemctl status adguardhome-sync.service
 If web UI has been enabled in configuration (default port is 8080), can also check the status via
 `http://<server-IP>:8080`
 
+### API Endpoints
+
+When the API server is enabled (default port 8080), you can use the following endpoints:
+
+**Check sync status:**
+```bash
+curl http://localhost:8080/api/v1/status
+# With authentication:
+curl -u username:password http://localhost:8080/api/v1/status
+```
+
+**Trigger a sync:**
+```bash
+curl -X POST http://localhost:8080/api/v1/sync
+# With authentication:
+curl -u username:password -X POST http://localhost:8080/api/v1/sync
+```
+
+**Check health:**
+```bash
+curl http://localhost:8080/healthz
+```
+
+**View logs:**
+```bash
+curl http://localhost:8080/api/v1/logs
+```
+
+**Get sync schedule:**
+```bash
+curl http://localhost:8080/api/v1/sync-schedule
+# Returns: {"lastSyncTime":"...","nextSyncTime":"...","syncRunning":false,"cronExpression":"*/5 * * *","intervalSeconds":300}
+```
+
+**Web dashboard:**
+
+Open in browser: `http://localhost:8080/` or `http://<server-IP>:8080/`
+
+Features:
+- Real-time sync progress indicator with countdown timer
+- Dark/light theme toggle with persistent preference
+- Live sync status and logs
+
+**Metrics (if enabled):**
+```bash
+curl http://localhost:8080/metrics
+```
+
 ## Run Windows
 
 ```bash
@@ -374,3 +422,13 @@ It can be changed to `json` by setting the environment variable: `LOG_FORMAT=jso
 
 - [Como replicar la configuración de tu servidor DNS Adguard automáticamente - Tu servidor Part #12](https://www.youtube.com/watch?v=1LPeu_JG064) (
   Spanish) by [Jonatan Castro](https://github.com/jcastro)
+
+## Production Implementation
+
+For detailed information about the production deployment in this environment, see [IMPLEMENTATION.md](./docs/IMPLEMENTATION.md)
+
+This includes:
+- Complete deployment details for the 10.10.20.x network
+- Service management and monitoring procedures
+- Troubleshooting guides and recovery procedures
+- API endpoints and usage examples
