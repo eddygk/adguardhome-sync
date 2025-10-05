@@ -13,3 +13,5 @@ bin
 config*.yaml
 *.log
 wiki
+adguardhome-sync.code-workspace
+.playwright-mcp
