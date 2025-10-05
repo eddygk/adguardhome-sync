@@ -3,7 +3,13 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/bakito/adguardhome-sync)](https://goreportcard.com/report/github.com/bakito/adguardhome-sync)
 [![Coverage Status](https://coveralls.io/repos/github/bakito/adguardhome-sync/badge.svg?branch=main&service=github)](https://coveralls.io/github/bakito/adguardhome-sync?branch=main)
 
+---
 
+> **⚡ Enhanced Fork**: This is a fork of [bakito/adguardhome-sync](https://github.com/bakito/adguardhome-sync) with additional real-time monitoring features for homelab HA DNS deployments. See [FORK.md](./FORK.md) for details.
+>
+> **Upstream**: https://github.com/bakito/adguardhome-sync
+
+---
 
 # <img src="./media/adguardhome-sync.svg" alt="AdGuardHome sync" width="50"/> AdGuardHome sync
 
